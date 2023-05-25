@@ -1,7 +1,13 @@
+:root {
+  --boxSizeRow: 8;
+  --boxSizeColumn: 8;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  user-select: none;
 }
 
 html, body{
@@ -14,20 +20,26 @@ html, body{
 
 .board {
   display: flex;
-  min-width: 400px;
-  min-height: 400px;
+  flex-direction: column;
+  min-width: 300px;
+  min-height: 500px;
   justify-content: center;
-  align-content: center;
+  align-items: center;
   margin: auto;
+  padding: 20px;
+  background-color: #BBBBBB;
+  border-left: 4px solid #D3D3D3;
+  border-top: 4px solid #D3D3D3;
+  border-right: 4px solid #A9A9A9;
+  border-bottom: 4px solid #A9A9A9;
 }
 
-.boardContainer {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  grid-template-rows: repeat(8, 1fr);
-  width: 100%;
-  height: 100%;
-
+.infoContainer {
+  display: flex;
+  height: 50px;
+  width: 300px;
+  justify-content: space-around;
+  align-items: center;
   background-color: #BBB;
   border-right: 4px solid #D3D3D3;
   border-bottom: 4px solid #D3D3D3;
@@ -35,18 +47,45 @@ html, body{
   border-top: 4px solid #A9A9A9;
 }
 
-/* .box {
+.facesButton {
+  width: 40px;
+  height: 40px;
   display: flex;
-  background-color: rgb(110, 110, 170);
-  border: 1px solid blue;
+  margin: 4px;
+  padding: 4px;
+  justify-content: center;
+  align-items: center;
+  background-color: #BBBBBB;
+  border-left: 4px solid #D3D3D3;
+  border-top: 4px solid #D3D3D3;
+  border-right: 4px solid #A9A9A9;
+  border-bottom: 4px solid #A9A9A9;
+  user-select: none;
+}
+
+.facesButton:active {
+  border-left: 2px solid #D3D3D3;
+  border-top: 2px solid #D3D3D3;
+  border-right: 2px solid #A9A9A9;
+  border-bottom: 2px solid #A9A9A9;
+}
+
+.boardContainer {
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(var(--boxSizeColumn), 1fr);
+  grid-template-rows: repeat(var(--boxSizeRow), 1fr);
   width: 100%;
   height: 100%;
-  justify-items: center;
   justify-content: center;
-  align-content: center;
   align-items: center;
-  user-select: none;
-} */
+  margin-top: 20px;
+  background-color: #BBB;
+  border-right: 4px solid #D3D3D3;
+  border-bottom: 4px solid #D3D3D3;
+  border-left: 4px solid #A9A9A9;
+  border-top: 4px solid #A9A9A9;
+}
 
 .box {
   display: flex;
@@ -64,7 +103,7 @@ html, body{
 }
 
 .open {
-  background-color: #BBB;
+  background-color: #BBBBBB;
   border-right: 2px solid #D3D3D3;
   border-bottom: 2px solid #D3D3D3;
   border-left: 2px solid #A9A9A9;
@@ -72,5 +111,64 @@ html, body{
 }
 
 .flag {
-  background-color: blue;
+  background-image: url("images/flag.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.mine, .detonatedMine {
+  background-image: url("images/mine.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.detonatedMine {
+  background-color: red;
+}
+
+.wrongMine {
+  background-image: url("images/wrongMine.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.number1 {
+  color: #0000ff;
+}
+
+.number2 {
+  color: #00ff00;
+}
+
+.number3 {
+  color: #ff0000;
+}
+
+.number4 {
+  color: #007bff;
+}
+
+.number5 {
+  color: #7bff00;
+}
+
+.number6 {
+  color: #ff7b00;
+}
+
+.number7 {
+  color: #00007b;
+}
+
+.number8 {
+  color: #ff00ff;
+}
+
+.textInfo {
+  display: flex;
+  width: 100%;
+  height: 50px;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
 }

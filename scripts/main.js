@@ -1,24 +1,41 @@
-const board = document.querySelector(".board");
-const boardContainer = document.querySelector(".boardContainer");
+facesButton.addEventListener("click", startGame);
+document.addEventListener("mouseup", ()=> {
+  if(gameFinishedBool === false) {
+    facesButton.innerHTML = "🙂";
+  }
+});
 
-let boardSize = [8, 8];
-let dificulty = 1;
-let minesAmount = 10;
-let counter = 0;
+let matrix = [];
+let matrixIds = [];
 
-const matrix = createMatrix();
-const matrixIds = createMatrixIds();
+startGame();
 
-renderBoard();
+function startGame() {
+  flags = minesAmount;
+  minesAmountInfo.innerHTML = `FLAGS: ${flags}`;
+  timeInfo.innerHTML = `TIME: 0`;
+  counter = 0;
+  startTime = false;
+  gameFinishedBool = false;
+  gameTime = 0;
+  boardContainer.innerHTML = "";
+  stateGameText.innerText = "";
+  facesButton.innerHTML = "🙂";
+  matrix = createMatrix();
+  matrixIds = createMatrixIds();
+  
+  clearTimeout(timer);
+  renderBoard();
+}
 
 function renderBoard() {
   let id = 0;
-  for(y = 0; y < boardSize[0]; y++) {
-    for(x = 0; x < boardSize[0]; x++) {
+  for(row = 0; row < boardSize[0]; row++) {
+    for(column = 0; column < boardSize[1]; column++) {
       const box = new Box({
         id: id,
-        position: [y, x],
-        isOpen: false,
+        position: [row, column],
+        hasFlag: false,
       });
       boardContainer.append(box.box);
       id++;
@@ -29,39 +46,86 @@ function renderBoard() {
 function openBox(id, position) {
   const boxToOpen = document.getElementById(`${id}`);
 
-  /* if(matrix[position[0]][position[1]] === 0) {
-    counter++;
-    boxToOpen.innerHTML = "";
-    openBoxArea(position);
-  } else if(matrix[position[0]][position[1]] === "M") {
-    boxToOpen.innerHTML = "boom";
-  } else {
-    counter++;
-    boxToOpen.innerHTML = matrix[position[0]][position[1]];
-    //openBoxArea(position);
-  } */ 
+  if(startTime === false) {
+    startTime = true;
+    startGameTimer();
+  }
 
   if(matrix[position[0]][position[1]] !== "M") {
     if(matrix[position[0]][position[1]] === 0) {
       boxToOpen.innerHTML = "";
       openBoxArea(position);
     } else {
-      boxToOpen.innerHTML = matrix[position[0]][position[1]];
+      const numberElement = matrix[position[0]][position[1]];
+      boxToOpen.classList.add(`number${numberElement}`);
+      boxToOpen.innerHTML = `<h1>${numberElement}</h1>`;
     }
     counter++;
-    console.log(counter);
     
   } else {
-    boxToOpen.innerHTML = "boom";
+    gameFinished("lose");
+    boxToOpen.classList.add("detonatedMine");
+  }
+
+  if(counter === (boardSize[0] * boardSize[1]) - minesAmount) {
+    gameFinished("win");
+  }
+}
+
+function startGameTimer() {
+  timer = setTimeout(()=> {
+    gameTime++;
+    timeInfo.innerHTML = `TIME: ${gameTime}`;
+    startGameTimer();
+  }, 1000);
+}
+
+function gameFinished(resultGame) {
+  gameFinishedBool = true;
+  clearTimeout(timer);
+
+  if(resultGame === "win") {
+    winGame();
+    stateGameText.innerText = "¡YOU WIN!";
+  } else if(resultGame === "lose") {
+    loseGame();
+    stateGameText.innerText = "¡YOU LOSE!";
+  }
+
+  function winGame() {
+    minePositions.forEach((position)=> {
+      const id = matrixIds[position[0]][position[1]];
+      const boxToOpen = document.getElementById(`${id}`);
+      boxToOpen.classList.add("flag");
+    });
+    facesButton.innerHTML = "😎";
+  }
+
+  function loseGame() {
+    matrixIds.forEach((row, rowIndex)=> {
+      row.forEach((column, columnIndex)=> {
+        const boxToOpen = document.getElementById(`${column}`);
+        if(boxToOpen.classList.contains("flag")) {
+          if(matrix[rowIndex][columnIndex] !== "M") {
+            boxToOpen.classList.remove("flag");
+            boxToOpen.classList.add("open");
+            boxToOpen.classList.add("wrongMine");
+          }
+        } else if(matrix[rowIndex][columnIndex] === "M") {
+          boxToOpen.classList.add("mine");
+        }
+      });
+    });
+    facesButton.innerHTML = "💀";
   }
 }
 
 function openBoxArea(position) {
   const areaToOpen = searchValidArea(position);
 
-  for(let y = areaToOpen[2]; y <= areaToOpen[3]; y++) {
-    for(let x = areaToOpen[0]; x <= areaToOpen[1]; x++) {
-      const newId = matrixIds[x][y];
+  for(let row = areaToOpen[0]; row <= areaToOpen[1]; row++) {
+    for(let column = areaToOpen[2]; column <= areaToOpen[3]; column++) {
+      const newId = matrixIds[row][column];
       const boxToOpen = document.getElementById(`${newId}`);
       boxToOpen.click();
     }
@@ -75,9 +139,9 @@ function createMatrix() {
   const newMatrix = [];
   let arrayPosition = 0;
 
-  for(y = 0; y < boardSize[1]; y++) {
+  for(row = 0; row < boardSize[0]; row++) {
     const newRow = [];
-    for(x = 0; x < boardSize[0]; x++) {
+    for(column = 0; column < boardSize[1]; column++) {
       newRow.push(sortedArray[arrayPosition]);
       arrayPosition++;
     }
@@ -85,26 +149,24 @@ function createMatrix() {
   }
 
   const newMatrixWithRanges = createMineRange(newMatrix);
-  console.table(newMatrixWithRanges);
   return newMatrixWithRanges;
 }
 
 function createMineRange(matrix) {
   let matrixWithRanges = matrix;
-  const minePositions = searchMines(matrix);
+  minePositions = searchMines(matrix);
   
   minePositions.forEach((minePosition)=> {
     const mineRange = searchValidArea(minePosition);
 
-    for(let y = mineRange[2]; y <= mineRange[3]; y++) {
-      for(let x = mineRange[0]; x <= mineRange[1]; x++) {
-        if(matrixWithRanges[y][x] !== "M") {
-          matrixWithRanges[y][x] = matrixWithRanges[y][x] + 1;
+    for(let row = mineRange[0]; row <= mineRange[1]; row++) {
+      for(let column = mineRange[2]; column <= mineRange[3]; column++) {
+        if(matrixWithRanges[row][column] !== "M") {
+          matrixWithRanges[row][column] = matrixWithRanges[row][column] + 1;
         }
       }
     }
   });
-
   return matrixWithRanges;
 }
 
@@ -113,7 +175,7 @@ function searchMines(matrix) {
   matrix.forEach((row, indexRow)=> {
     row.forEach((element, indexElement)=> {
       if(element === "M") {
-        array.push([indexElement, indexRow]);
+        array.push([indexRow, indexElement]);
       }
     });
   });
@@ -132,9 +194,9 @@ function searchValidArea(position) {
 function createMatrixIds() {
   let id = 0;
   const matrixIds = [];
-  for(y = 0; y < boardSize[1]; y++) {
+  for(row = 0; row < boardSize[0]; row++) {
     const arrayIds = [];
-    for(x = 0; x < boardSize[1]; x++) {
+    for(column = 0; column < boardSize[1]; column++) {
       arrayIds.push(id);
       id++;
     }
