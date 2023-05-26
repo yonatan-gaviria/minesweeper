@@ -20,7 +20,7 @@ class Box {
   }
 
   #addEventListeners = ()=> {
-    this.box.addEventListener("click", this.#handleClick);
+    this.box.addEventListener("click", this.#otherHandleClick /* this.#handleClick */);
     this.box.addEventListener("contextmenu", this.#handleRightClick);
     this.box.addEventListener("mousedown", this.#handleMouseDown);
   }
@@ -33,6 +33,10 @@ class Box {
         openBox(this.id, this.position);
       }
     }
+  }
+
+  #otherHandleClick = ()=> {
+    openBox(this.id, this.position);
   }
 
   #handleRightClick = (ev)=> {

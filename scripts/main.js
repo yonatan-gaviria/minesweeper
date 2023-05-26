@@ -1,3 +1,17 @@
+levelSelector.addEventListener("click", ()=> {
+  level++;
+  if(level > 6) {
+    level = 1;
+  }
+  selectLevel();
+});
+
+/* personalized.addEventListener("click", ()=> {
+  root.style.setProperty("--boxSizeRow", 1);
+  root.style.setProperty("--boxSizeColumn", 1);
+  boardContainer.innerHTML = `<div class="optionsContainer"></div>`;
+}); */
+
 facesButton.addEventListener("click", startGame);
 document.addEventListener("mouseup", ()=> {
   if(gameFinishedBool === false) {
@@ -5,10 +19,52 @@ document.addEventListener("mouseup", ()=> {
   }
 });
 
-let matrix = [];
-let matrixIds = [];
-
 startGame();
+
+function selectLevel() {
+  switch (level) {
+    case 1: 
+      boardSize = [8,8];
+      minesAmount = 10;
+      meter_arrow.style = "transform: rotate(-80deg);";
+    break;
+    
+    case 2: 
+      boardSize = [8,16];
+      minesAmount = 26;
+      meter_arrow.style = "transform: rotate(-48deg);";
+    break;
+    
+    case 3: 
+      boardSize = [16,16];
+      minesAmount = 40;
+      meter_arrow.style = "transform: rotate(-16deg);";
+    break;
+
+    case 4: 
+      boardSize = [16,30];
+      minesAmount = 100;
+      meter_arrow.style = "transform: rotate(16deg);";
+    break;
+
+    case 5: 
+      boardSize = [30,30];
+      minesAmount = 140;
+      meter_arrow.style = "transform: rotate(48deg);";
+    break;
+
+    case 6: 
+      boardSize = [30,60];
+      minesAmount = 375;
+      meter_arrow.style = "transform: rotate(80deg);";
+    break;
+  
+    default:
+    break;
+  }
+
+  startGame();
+}
 
 function startGame() {
   flags = minesAmount;
@@ -21,6 +77,10 @@ function startGame() {
   boardContainer.innerHTML = "";
   stateGameText.innerText = "";
   facesButton.innerHTML = "🙂";
+
+  root.style.setProperty("--boxSizeRow", boardSize[0]);
+  root.style.setProperty("--boxSizeColumn", boardSize[1]);
+
   matrix = createMatrix();
   matrixIds = createMatrixIds();
   
@@ -44,31 +104,49 @@ function renderBoard() {
 }
 
 function openBox(id, position) {
-  const boxToOpen = document.getElementById(`${id}`);
-
   if(startTime === false) {
     startTime = true;
     startGameTimer();
   }
+  
+  const box = document.getElementById(`${id}`);
+  if(!box.classList.contains("open") && !box.classList.contains("flag") && gameFinishedBool === false) {
+    box.classList.add("open");
 
-  if(matrix[position[0]][position[1]] !== "M") {
-    if(matrix[position[0]][position[1]] === 0) {
-      boxToOpen.innerHTML = "";
-      openBoxArea(position);
+    if(matrix[position[0]][position[1]] !== "M") {
+      if(matrix[position[0]][position[1]] === 0) {
+        box.innerHTML = "";
+        openBoxArea(position);
+      } else {
+        const numberElement = matrix[position[0]][position[1]];
+        box.classList.add(`number${numberElement}`);
+        box.innerHTML = `<h2>${numberElement}</h2>`;
+      }
+      counter++;
+      
     } else {
-      const numberElement = matrix[position[0]][position[1]];
-      boxToOpen.classList.add(`number${numberElement}`);
-      boxToOpen.innerHTML = `<h1>${numberElement}</h1>`;
+      gameFinished("lose");
+      box.classList.add("detonatedMine");
     }
-    counter++;
-    
-  } else {
-    gameFinished("lose");
-    boxToOpen.classList.add("detonatedMine");
-  }
 
-  if(counter === (boardSize[0] * boardSize[1]) - minesAmount) {
-    gameFinished("win");
+    if(counter === (boardSize[0] * boardSize[1]) - minesAmount) {
+      gameFinished("win");
+    }
+  }
+}
+
+function openBoxArea(position) {
+  const range = searchValidArea(position);
+
+  for(let row = range[0]; row <= range[1]; row++) {
+    for(let column = range[2]; column <= range[3]; column++) {
+
+        if(matrix[position[0]][position[1]] === 0) {
+          const newPosition = [row, column];
+          const newId = matrixIds[row][column];
+          openBox(newId, newPosition);
+        }
+    }
   }
 }
 
@@ -120,18 +198,6 @@ function gameFinished(resultGame) {
   }
 }
 
-function openBoxArea(position) {
-  const areaToOpen = searchValidArea(position);
-
-  for(let row = areaToOpen[0]; row <= areaToOpen[1]; row++) {
-    for(let column = areaToOpen[2]; column <= areaToOpen[3]; column++) {
-      const newId = matrixIds[row][column];
-      const boxToOpen = document.getElementById(`${newId}`);
-      boxToOpen.click();
-    }
-  }
-}
-
 function createMatrix() {
   const arraySize = boardSize[0] * boardSize[1];
   const array = new Array(arraySize).fill(0).fill("M", 0, minesAmount);
@@ -149,6 +215,7 @@ function createMatrix() {
   }
 
   const newMatrixWithRanges = createMineRange(newMatrix);
+  console.table(newMatrixWithRanges); ////..............................
   return newMatrixWithRanges;
 }
 
