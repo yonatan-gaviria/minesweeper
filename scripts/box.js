@@ -15,45 +15,35 @@ class Box {
     box.classList.add("box");
     box.id = this.id;
 
-    this.box = box;
+    this.element = box;
     this.#addEventListeners();
   }
 
   #addEventListeners = ()=> {
-    this.box.addEventListener("click", this.#otherHandleClick /* this.#handleClick */);
-    this.box.addEventListener("contextmenu", this.#handleRightClick);
-    this.box.addEventListener("mousedown", this.#handleMouseDown);
+    this.element.addEventListener("click", this.#handleClick);
+    this.element.addEventListener("contextmenu", this.#handleRightClick);
+    this.element.addEventListener("mousedown", this.#handleMouseDown);
   }
 
   #handleClick = ()=> {
-    if(gameFinishedBool === false) {
-      if(!this.box.classList.contains("flag")) {
-        this.box.classList.add("open");
-        this.box.removeEventListener("click", this.#handleClick);
-        openBox(this.id, this.position);
-      }
-    }
-  }
-
-  #otherHandleClick = ()=> {
     openBox(this.id, this.position);
   }
 
   #handleRightClick = (ev)=> {
     if(gameFinishedBool === false) {
       ev.preventDefault();
-      if(!this.box.classList.contains("open")) {
+      if(!this.element.classList.contains("open")) {
         if(!this.hasFlag) {
           if(flags > 0) {
             this.hasFlag = !this.hasFlag;
-            this.box.classList.toggle("flag");
+            this.element.classList.toggle("flag");
             flags--;
           } else {
             alert("you have no more flags");
           }
         } else if(this.hasFlag) {
           this.hasFlag = !this.hasFlag;
-          this.box.classList.toggle("flag");
+          this.element.classList.toggle("flag");
           flags++;
         }
         
@@ -64,8 +54,10 @@ class Box {
 
   #handleMouseDown = (ev)=> {
     if(gameFinishedBool === false && ev.button === 0) {
-      if(!this.box.classList.contains("flag") && !this.box.classList.contains("open")) {
-        facesButton.innerHTML = "😮";
+      if(!this.element.classList.contains("flag") && !this.element.classList.contains("open")) {
+        const randomPosition = Math.floor(Math.random() * surpriseFaces.length);
+        const randomFace = surpriseFaces[randomPosition];
+        facesButton.innerHTML = randomFace;
       }
     }
   }

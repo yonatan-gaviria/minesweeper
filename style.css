@@ -45,7 +45,7 @@ html, body{
 
 .levelSelector,
 .personalized,
-.saveMode {
+.mode {
   width: 50px;
   height: 50px;
   margin: 10px;
@@ -59,7 +59,7 @@ html, body{
 
 .levelSelector:active,
 .personalized:active,
-.saveMode:active {
+.mode:active {
   border-right: 4px solid #D3D3D3;
   border-bottom: 4px solid #D3D3D3;
   border-left: 4px solid #A9A9A9;
@@ -92,8 +92,14 @@ html, body{
   background-size: cover; 
 }
 
-.saveMode {
+.random {
   background-image: url("images/random.png");
+  background-repeat: no-repeat;
+  background-size: cover; 
+}
+
+.saveMode {
+  background-image: url("images/shield.png");
   background-repeat: no-repeat;
   background-size: cover; 
 }
@@ -156,10 +162,10 @@ html, body{
 }
 
 .facesButton:active {
-  border-right: 4px solid #D3D3D3;
-  border-bottom: 4px solid #D3D3D3;
-  border-left: 4px solid #A9A9A9;
-  border-top: 4px solid #A9A9A9;
+  border-right: 2px solid #D3D3D3;
+  border-bottom: 2px solid #D3D3D3;
+  border-left: 2px solid #A9A9A9;
+  border-top: 2px solid #A9A9A9;
 }
 
 .boardContainer {
@@ -271,27 +277,77 @@ html, body{
   align-items: center;
 }
 
-.optionsContainer {
-  display: flex;
-  width: 300px;
-  height: 400px;
+.customMenuContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr 1fr;
+  grid-template-areas: 
+  "textWidth inputWidth"
+  "textHeight inputHeight"
+  "textMines inputMines"
+  "verificatorContainer verificatorContainer";
+  width: 250px;
+  height: 300px;
+  padding: 20px;
   background-color: #BBBBBB;
-  border-left: 2px solid #D3D3D3;
-  border-top: 2px solid #D3D3D3;
-  border-right: 2px solid #A9A9A9;
-  border-bottom: 2px solid #A9A9A9;
+  border-left: 4px solid #D3D3D3;
+  border-top: 4px solid #D3D3D3;
+  border-right: 4px solid #A9A9A9;
+  border-bottom: 4px solid #A9A9A9;
   justify-content: center;
+  justify-items: center;
   align-items: center;
 }
 
-/* #exitOptions {
-  position:absolute;
-  right: 0;
-  top: 0;
-  margin: 20px;
-  cursor: pointer;
+.textWidth {
+  grid-area: textWidth;
 }
 
-#exitOptions:hover {
-  color: #555555;
-} */
+.inputWidth {
+  grid-area: inputWidth;
+  width: 80px;
+}
+
+.textHeight {
+  grid-area: textHeight;
+}
+
+.inputHeight {
+  grid-area: inputHeight;
+  width: 80px;
+}
+
+.textMines {
+  grid-area: textMines;
+}
+
+.inputMines {
+  grid-area: inputMines;
+  width: 80px;
+}
+
+.verificatorContainer {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  grid-area: verificatorContainer;
+}
+
+.verificatorContainer button {
+  width: 60px;
+  height: 30px;
+  justify-content: center;
+  background-color: #BBBBBB;
+  border-left: 4px solid #D3D3D3;
+  border-top: 4px solid #D3D3D3;
+  border-right: 4px solid #A9A9A9;
+  border-bottom: 4px solid #A9A9A9;
+  user-select: none;
+}
+
+.verificatorContainer button:active {
+  border-right: 2px solid #D3D3D3;
+  border-bottom: 2px solid #D3D3D3;
+  border-left: 2px solid #A9A9A9;
+  border-top: 2px solid #A9A9A9;
+}

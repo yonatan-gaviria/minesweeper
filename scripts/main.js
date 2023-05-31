@@ -1,3 +1,9 @@
+document.addEventListener("mouseup", ()=> {
+  if(gameFinishedBool === false) {
+    facesButton.innerHTML = "🙂";
+  }
+});
+
 levelSelector.addEventListener("click", ()=> {
   level++;
   if(level > 6) {
@@ -6,20 +12,29 @@ levelSelector.addEventListener("click", ()=> {
   selectLevel();
 });
 
-/* personalized.addEventListener("click", ()=> {
+personalized.addEventListener("click", ()=> {
+  restartDefaultValues();
+  facesButton.removeEventListener("click", restartDefaultValues);
+  minesAmountInfo.innerHTML = `FLAGS: ???`;
+  boardContainer.innerHTML = "";
   root.style.setProperty("--boxSizeRow", 1);
   root.style.setProperty("--boxSizeColumn", 1);
-  boardContainer.innerHTML = `<div class="optionsContainer"></div>`;
-}); */
-
-facesButton.addEventListener("click", startGame);
-document.addEventListener("mouseup", ()=> {
-  if(gameFinishedBool === false) {
-    facesButton.innerHTML = "🙂";
-  }
+  const customMenu = new CustomGame();
+  boardContainer.append(customMenu.element);
 });
 
-startGame();
+mode.addEventListener("click", ()=> {
+  if(mode.classList.contains("random")) {
+    saveModeBool = true;
+    mode.classList.remove("random");
+    mode.classList.add("saveMode");
+  } else {
+    saveModeBool = false;
+    mode.classList.remove("saveMode");
+    mode.classList.add("random");
+  }
+  restartDefaultValues();
+});
 
 function selectLevel() {
   switch (level) {
@@ -63,50 +78,61 @@ function selectLevel() {
     break;
   }
 
-  startGame();
+  restartDefaultValues();
 }
 
-function startGame() {
+function startGame(position) {
+  matrixIds = createMatrixIds();
+  matrix = createMatrix(position);
+  
+  clearTimeout(timer);
+  startGameTimer();
+}
+
+function restartDefaultValues() {
   flags = minesAmount;
-  minesAmountInfo.innerHTML = `FLAGS: ${flags}`;
-  timeInfo.innerHTML = `TIME: 0`;
   counter = 0;
-  startTime = false;
+  startGameBool = false;
   gameFinishedBool = false;
   gameTime = 0;
+  minesAmountInfo.innerHTML = `FLAGS: ${flags}`;
+  timeInfo.innerHTML = `TIME: 0`;
   boardContainer.innerHTML = "";
   stateGameText.innerText = "";
   facesButton.innerHTML = "🙂";
 
-  root.style.setProperty("--boxSizeRow", boardSize[0]);
-  root.style.setProperty("--boxSizeColumn", boardSize[1]);
+  facesButton.addEventListener("click", restartDefaultValues);
 
-  matrix = createMatrix();
-  matrixIds = createMatrixIds();
-  
   clearTimeout(timer);
   renderBoard();
 }
 
 function renderBoard() {
+  boardContainer.innerHTML = "";
+  root.style.setProperty("--boxSizeRow", boardSize[0]);
+  root.style.setProperty("--boxSizeColumn", boardSize[1]);
+
   let id = 0;
+
   for(row = 0; row < boardSize[0]; row++) {
     for(column = 0; column < boardSize[1]; column++) {
+
       const box = new Box({
         id: id,
         position: [row, column],
         hasFlag: false,
       });
-      boardContainer.append(box.box);
+
+      boardContainer.append(box.element);
       id++;
     }
   }
 }
 
 function openBox(id, position) {
-  if(startTime === false) {
-    startTime = true;
-    startGameTimer();
+  if(startGameBool === false) {
+    startGameBool = true;
+    startGame(position);
   }
   
   const box = document.getElementById(`${id}`);
@@ -176,7 +202,9 @@ function gameFinished(resultGame) {
       const boxToOpen = document.getElementById(`${id}`);
       boxToOpen.classList.add("flag");
     });
-    facesButton.innerHTML = "😎";
+    const randomPosition = Math.floor(Math.random() * winFaces.length);
+    const randomFace = winFaces[randomPosition];
+    facesButton.innerHTML = randomFace;
   }
 
   function loseGame() {
@@ -194,29 +222,105 @@ function gameFinished(resultGame) {
         }
       });
     });
-    facesButton.innerHTML = "💀";
+    const randomPosition = Math.floor(Math.random() * loseFaces.length);
+    const randomFace = loseFaces[randomPosition];
+    facesButton.innerHTML = randomFace;
   }
 }
 
-function createMatrix() {
+function createMatrix(position) {
+  const sortedArray = createArrayWithMines();
+  let newMatrix = createMatrixWithMines(sortedArray);
+
+  if(saveModeBool){
+    newMatrix = moveMines(newMatrix, position);
+  }
+
+  const newMatrixWithRanges = createMineRange(newMatrix);
+  return newMatrixWithRanges;
+}
+
+function moveMines(matrix, position) {
+  const newMatrix = matrix;
+  const mineRange = searchValidArea(position);
+  const invalidIds = [];
+  let minesRemoved = 0;
+
+  for(let row = mineRange[0]; row <= mineRange[1]; row++) {
+    for(let column = mineRange[2]; column <= mineRange[3]; column++) {
+      const id = matrixIds[row][column];
+      if(newMatrix[row][column] === "M") {
+        newMatrix[row][column] = 0;
+        minesRemoved++;
+      }
+      invalidIds.push(id);
+    }
+  }
+
+  const arrayRow = [];
+  for(let i = 0; i < boardSize[0]; i++) {
+    arrayRow.push(i)
+  }
+
+  const arrayColumn = [];
+  for(let i = 0; i < boardSize[1]; i++) {
+    arrayColumn.push(i)
+  }
+
+  while(minesRemoved > 0) {
+    const randomRow = arrayRow.sort(()=> Math.random() - 0.5);
+    const randomColumn = arrayColumn.sort(()=> Math.random() - 0.5);
+  
+    for(let i = 0; i < randomRow.length; i++) {
+      for(let j = 0; j < randomColumn.length; j++) {
+        let position = [randomRow[i], randomColumn[j]];
+        const isValid = validateEmptyBox(position);
+        if(isValid) {
+          newMatrix[position[0]][position[1]] = "M";
+          minesRemoved--;
+          break;
+        }
+        if(minesRemoved <= 0) { break; }
+      }
+      if(minesRemoved <= 0) { break; }
+    }
+  }
+  return newMatrix;
+
+  function validateEmptyBox(position) {
+    let isValid = true;
+    for(let i = 0; i < invalidIds.length; i++) {
+      if(matrixIds[position[0]][position[1]] === invalidIds[i] || 
+      newMatrix[position[0]][position[1]] === "M") {
+        isValid = false;
+        break;
+      }
+    }
+    return isValid;
+  }
+}
+
+function createArrayWithMines() {
   const arraySize = boardSize[0] * boardSize[1];
   const array = new Array(arraySize).fill(0).fill("M", 0, minesAmount);
   const sortedArray = array.sort(()=> Math.random() - 0.5);
+
+  return sortedArray;
+}
+
+function createMatrixWithMines(array) {
   const newMatrix = [];
   let arrayPosition = 0;
 
   for(row = 0; row < boardSize[0]; row++) {
     const newRow = [];
     for(column = 0; column < boardSize[1]; column++) {
-      newRow.push(sortedArray[arrayPosition]);
+      newRow.push(array[arrayPosition]);
       arrayPosition++;
     }
     newMatrix.push(newRow);
   }
-
-  const newMatrixWithRanges = createMineRange(newMatrix);
-  console.table(newMatrixWithRanges); ////..............................
-  return newMatrixWithRanges;
+  return newMatrix;
 }
 
 function createMineRange(matrix) {
@@ -271,3 +375,5 @@ function createMatrixIds() {
   }
   return matrixIds;
 }
+
+restartDefaultValues();
